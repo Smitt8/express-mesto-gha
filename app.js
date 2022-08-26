@@ -15,8 +15,6 @@ async function main() {
     // useFindAndModify: false,
   });
 
-  app.use(routes);
-
   app.use((req, res, next) => {
     req.user = {
       _id: '630908c8adb6ec8178e45070',
@@ -24,6 +22,8 @@ async function main() {
 
     next();
   });
+
+  app.use(routes);
 
   await app.listen(PORT);
 
