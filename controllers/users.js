@@ -1,5 +1,10 @@
 const User = require('../models/user');
 
+const updUserSettings = {
+  new: true,
+  runValidators: true,
+};
+
 const getUsers = async (req, res) => {
   const users = await User.find({});
   if (users.length === 0) {
@@ -24,8 +29,22 @@ const createUser = async (req, res) => {
   res.status(200).send(user);
 };
 
+const updUser = async (req, res) => {
+  const user = await User.findByIdAndUpdate(req.user._id, req.body, updUserSettings);
+
+  res.status(200).send(user);
+};
+
+const updAvatar = async (req, res) => {
+  const user = await User.findByIdAndUpdate(req.user._id, req.body, updUserSettings);
+
+  res.status(200).send(user);
+};
+
 module.exports = {
   getUsers,
   getUserById,
   createUser,
+  updUser,
+  updAvatar,
 };
