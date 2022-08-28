@@ -40,7 +40,8 @@ const createCard = (req, res) => {
   card.save().then(() => {
     res.status(OK).send(prepareSendCard(card));
   }).catch((err) => {
-    if (err.errors.about.name === 'ValidatorError') {
+    if ((err.errors.name && err.errors.name.name === 'ValidatorError')
+    || (err.errors.link && err.errors.link.name === 'ValidatorError')) {
       return res.status(ERR_BAD_INPUT).send({ message: 'Некорректный запрос' });
     }
     return res.status(ERR_SERVER_ERR).send({ message: 'Ошибка сервера' });
