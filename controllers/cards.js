@@ -37,14 +37,7 @@ const checkExist = (card, res, msg) => {
 
 const getCards = (req, res) => {
   Card.find({})
-    .then((cards) => {
-      if (cards.length === 0) {
-        return res
-          .status(ERR_BAD_INPUT)
-          .send({ message: 'Нет доступных карточек' });
-      }
-      return res.status(OK).send(cards.map((el) => prepareSendCard(el)));
-    })
+    .then((cards) => res.status(OK).send(cards.map((el) => prepareSendCard(el))))
     .catch(() => {
       res.status(ERR_SERVER_ERR).send({ message: 'Ошибка сервера' });
     });
