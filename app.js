@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 
 const { routes } = require('./routes/index');
+const { ERR_NOT_FOUND } = require('./utils/consts');
 
 const { PORT = 3000 } = process.env;
 
@@ -21,6 +22,10 @@ async function main() {
   });
 
   app.use(routes);
+
+  app.use((req, res) => {
+    res.status(ERR_NOT_FOUND).send({ message: 'Страница не найдена' });
+  });
 
   await app.listen(PORT);
 

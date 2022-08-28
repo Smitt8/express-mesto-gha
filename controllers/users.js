@@ -50,10 +50,10 @@ const createUser = (req, res) => {
   user.save().then(() => {
     res.status(OK).send(prepareSendUser(user));
   }).catch((err) => {
-    if (err.errors.about.name === 'ValidatorError') {
+    if (err.errors.name.name === 'ValidatorError') {
       return res.status(ERR_BAD_INPUT).send({ message: 'Некорректный запрос' });
     }
-    return res.status(ERR_SERVER_ERR).send({ message: 'Ошибка сервера' });
+    return res.status(ERR_SERVER_ERR).send({ message: 'Ошибка сервера', ...err });
   });
 };
 
