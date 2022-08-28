@@ -14,8 +14,18 @@ const prepareSendCard = (card) => {
     link: card.link,
     owner: card.owner,
     createdAt: card.createdAt,
+    _id: card._id,
   };
   return newCard;
+};
+
+const checkErr = (err, res) => {
+  if (err.kind === 'ObjectId'
+  || (err.errors.name && err.errors.name.name === 'ValidatorError')
+  || (err.errors.link && err.errors.link.name === 'ValidatorError')) {
+    return res.status(ERR_BAD_INPUT).send({ message: 'Некорректный запрос' });
+  }
+  return res.status(ERR_SERVER_ERR).send({ message: 'Ошибка сервера' });
 };
 
 const getCards = (req, res) => {
@@ -55,12 +65,7 @@ const rmCard = (req, res) => {
       return res.status(ERR_NOT_FOUND).send({ message: `Карточка с id(${id}) не найдена` });
     }
     return res.status(OK).send({ message: 'Пост удален' });
-  }).catch((err) => {
-    if (err.kind === 'ObjectId') {
-      return res.status(ERR_BAD_INPUT).send({ message: 'Некорректный id карточки' });
-    }
-    return res.status(ERR_SERVER_ERR).send({ message: 'Ошибка сервера' });
-  });
+  }).catch((err) => checkErr(err, res));
 };
 
 const likeCard = (req, res) => {
@@ -74,12 +79,7 @@ const likeCard = (req, res) => {
       return res.status(ERR_NOT_FOUND).send({ message: `Карточка с id(${id}) не найдена` });
     }
     return res.status(OK).send(prepareSendCard(card));
-  }).catch((err) => {
-    if (err.kind === 'ObjectId') {
-      return res.status(ERR_BAD_INPUT).send({ message: 'Некорректный id карточки' });
-    }
-    return res.status(ERR_SERVER_ERR).send({ message: 'Ошибка сервера' });
-  });
+  }).catch((err) => checkErr(err, res));
 };
 
 const dislikeCard = (req, res) => {
@@ -93,12 +93,7 @@ const dislikeCard = (req, res) => {
       return res.status(ERR_NOT_FOUND).send({ message: `Карточка с id(${id}) не найдена` });
     }
     return res.status(OK).send(prepareSendCard(card));
-  }).catch((err) => {
-    if (err.kind === 'ObjectId') {
-      return res.status(ERR_BAD_INPUT).send({ message: 'Некорректный id карточки' });
-    }
-    return res.status(ERR_SERVER_ERR).send({ message: 'Ошибка сервера' });
-  });
+  }).catch((err) => checkErr(err, res));
 };
 
 module.exports = {

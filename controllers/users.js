@@ -18,6 +18,15 @@ const prepareSendUser = (user) => {
   return newUser;
 };
 
+const checkErr = (err, res) => {
+  if ((err.kind === 'ObjectId') || (err.errors.name && err.errors.name.name === 'ValidatorError')
+  || (err.errors.about && err.errors.about.name === 'ValidatorError')
+  || (err.errors.avatar && err.errors.avatar.name === 'ValidatorError')) {
+    return res.status(ERR_BAD_INPUT).send({ message: 'Некорректный запрос' });
+  }
+  return res.status(ERR_SERVER_ERR).send({ message: 'Ошибка сервера' });
+};
+
 const getUsers = (req, res) => {
   User.find({}).then((users) => {
     if (users.length === 0) {
@@ -36,12 +45,7 @@ const getUserById = (req, res) => {
       return res.status(ERR_NOT_FOUND).send({ message: `Пользователь с id(${id}) не найден` });
     }
     return res.status(OK).send(prepareSendUser(user));
-  }).catch((err) => {
-    if (err.kind === 'ObjectId') {
-      return res.status(ERR_BAD_INPUT).send({ message: 'Некорректный id пользователя' });
-    }
-    return res.status(ERR_SERVER_ERR).send({ message: 'Ошибка сервера' });
-  });
+  }).catch((err) => checkErr(err, res));
 };
 
 const createUser = (req, res) => {
@@ -49,14 +53,7 @@ const createUser = (req, res) => {
 
   user.save().then(() => {
     res.status(OK).send(prepareSendUser(user));
-  }).catch((err) => {
-    if ((err.errors.name && err.errors.name.name === 'ValidatorError')
-    || (err.errors.about && err.errors.about.name === 'ValidatorError')
-    || (err.errors.avatar && err.errors.avatar.name === 'ValidatorError')) {
-      return res.status(ERR_BAD_INPUT).send({ message: 'Некорректный запрос' });
-    }
-    return res.status(ERR_SERVER_ERR).send({ message: 'Ошибка сервера', ...err });
-  });
+  }).catch((err) => checkErr(err, res));
 };
 
 const updUser = (req, res) => {
@@ -65,12 +62,7 @@ const updUser = (req, res) => {
       return res.status(ERR_NOT_FOUND).send({ message: `Пользователь с id(${req.user._id}) не найден` });
     }
     return res.status(OK).send(prepareSendUser(user));
-  }).catch((err) => {
-    if (err.kind === 'ObjectId') {
-      return res.status(ERR_BAD_INPUT).send({ message: 'Некорректный id пользователя' });
-    }
-    return res.status(ERR_SERVER_ERR).send({ message: 'Ошибка сервера' });
-  });
+  }).catch((err) => checkErr(err, res));
 };
 
 const updAvatar = (req, res) => {
@@ -79,12 +71,7 @@ const updAvatar = (req, res) => {
       return res.status(ERR_NOT_FOUND).send({ message: `Пользователь с id(${req.user._id}) не найден` });
     }
     return res.status(OK).send(prepareSendUser(user));
-  }).catch((err) => {
-    if (err.kind === 'ObjectId') {
-      return res.status(ERR_BAD_INPUT).send({ message: 'Некорректный id пользователя' });
-    }
-    return res.status(ERR_SERVER_ERR).send({ message: 'Ошибка сервера' });
-  });
+  }).catch((err) => checkErr(err, res));
 };
 
 module.exports = {
