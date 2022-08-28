@@ -27,6 +27,13 @@ const checkErr = (err, res) => {
   return res.status(ERR_SERVER_ERR).send({ message: 'Ошибка сервера' });
 };
 
+const checkExist = (user, res, msg) => {
+  if (!user) {
+    return res.status(ERR_NOT_FOUND).send({ message: 'Пользователь не найден' });
+  }
+  return res.status(OK).send((msg) || user);
+};
+
 const getUsers = (req, res) => {
   User.find({}).then((users) => {
     if (users.length === 0) {
@@ -40,12 +47,8 @@ const getUsers = (req, res) => {
 
 const getUserById = (req, res) => {
   const { id } = req.params;
-  User.findById(id).then((user) => {
-    if (!user) {
-      return res.status(ERR_NOT_FOUND).send({ message: `Пользователь с id(${id}) не найден` });
-    }
-    return res.status(OK).send(prepareSendUser(user));
-  }).catch((err) => checkErr(err, res));
+  User.findById(id).then((user) => checkExist(user, res))
+    .catch((err) => checkErr(err, res));
 };
 
 const createUser = (req, res) => {
@@ -57,21 +60,15 @@ const createUser = (req, res) => {
 };
 
 const updUser = (req, res) => {
-  User.findByIdAndUpdate(req.user._id, req.body, updUserSettings).then((user) => {
-    if (!user) {
-      return res.status(ERR_NOT_FOUND).send({ message: `Пользователь с id(${req.user._id}) не найден` });
-    }
-    return res.status(OK).send(prepareSendUser(user));
-  }).catch((err) => checkErr(err, res));
+  User.findByIdAndUpdate(req.user._id, req.body, updUserSettings)
+    .then((user) => checkExist(user, res))
+    .catch((err) => checkErr(err, res));
 };
 
 const updAvatar = (req, res) => {
-  User.findByIdAndUpdate(req.user._id, req.body, updUserSettings).then((user) => {
-    if (!user) {
-      return res.status(ERR_NOT_FOUND).send({ message: `Пользователь с id(${req.user._id}) не найден` });
-    }
-    return res.status(OK).send(prepareSendUser(user));
-  }).catch((err) => checkErr(err, res));
+  User.findByIdAndUpdate(req.user._id, req.body, updUserSettings)
+    .then((user) => checkExist(user, res))
+    .catch((err) => checkErr(err, res));
 };
 
 module.exports = {

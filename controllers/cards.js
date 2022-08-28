@@ -28,6 +28,13 @@ const checkErr = (err, res) => {
   return res.status(ERR_SERVER_ERR).send({ message: 'Ошибка сервера' });
 };
 
+const checkExist = (card, res, msg) => {
+  if (!card) {
+    return res.status(ERR_NOT_FOUND).send({ message: 'Карточка не найдена' });
+  }
+  return res.status(OK).send((msg) || card);
+};
+
 const getCards = (req, res) => {
   Card.find({})
     .then((cards) => {
@@ -49,23 +56,13 @@ const createCard = (req, res) => {
   card.owner = req.user._id;
   card.save().then(() => {
     res.status(OK).send(prepareSendCard(card));
-  }).catch((err) => {
-    if ((err.errors.name && err.errors.name.name === 'ValidatorError')
-    || (err.errors.link && err.errors.link.name === 'ValidatorError')) {
-      return res.status(ERR_BAD_INPUT).send({ message: 'Некорректный запрос' });
-    }
-    return res.status(ERR_SERVER_ERR).send({ message: 'Ошибка сервера' });
-  });
+  }).catch((err) => checkErr(err, res));
 };
 
 const rmCard = (req, res) => {
   const { id } = req.params;
-  Card.findByIdAndDelete(id).then((card) => {
-    if (!card) {
-      return res.status(ERR_NOT_FOUND).send({ message: `Карточка с id(${id}) не найдена` });
-    }
-    return res.status(OK).send({ message: 'Пост удален' });
-  }).catch((err) => checkErr(err, res));
+  Card.findByIdAndDelete(id).then((card) => checkExist(card, res, { message: 'Пост удален' }))
+    .catch((err) => checkErr(err, res));
 };
 
 const likeCard = (req, res) => {
@@ -74,12 +71,8 @@ const likeCard = (req, res) => {
     id,
     { $addToSet: { likes: req.user._id } },
     updCardSettings,
-  ).then((card) => {
-    if (!card) {
-      return res.status(ERR_NOT_FOUND).send({ message: `Карточка с id(${id}) не найдена` });
-    }
-    return res.status(OK).send(prepareSendCard(card));
-  }).catch((err) => checkErr(err, res));
+  ).then((card) => checkExist(card, res))
+    .catch((err) => checkErr(err, res));
 };
 
 const dislikeCard = (req, res) => {
@@ -88,12 +81,8 @@ const dislikeCard = (req, res) => {
     id,
     { $pull: { likes: req.user._id } },
     updCardSettings,
-  ).then((card) => {
-    if (!card) {
-      return res.status(ERR_NOT_FOUND).send({ message: `Карточка с id(${id}) не найдена` });
-    }
-    return res.status(OK).send(prepareSendCard(card));
-  }).catch((err) => checkErr(err, res));
+  ).then((card) => checkExist(card, res))
+    .catch((err) => checkErr(err, res));
 };
 
 module.exports = {
