@@ -19,7 +19,6 @@ async function main() {
     req.user = {
       _id: '630908c8adb6ec8178e45070',
     };
-
     next();
   });
 

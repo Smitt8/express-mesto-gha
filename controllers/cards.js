@@ -1,5 +1,9 @@
 const Card = require('../models/card');
 
+const updCardSettings = {
+  new: true,
+};
+
 const getCards = async (req, res) => {
   const cards = await Card.find({});
 
@@ -21,17 +25,36 @@ const createCard = async (req, res) => {
 
 const rmCard = async (req, res) => {
   const { id } = req.params;
+  await Card.findByIdAndDelete(id);
+  res.status(200).send({ message: 'Пост удален' });
+};
 
-  const card = Card.findById(id);
-  if (!card) {
-    return res.status(404).send({ message: 'Такой карточки не существует' });
-  }
-  Card.deleteOne(card);
-  return res.status(200).send({ message: 'Пост удален' });
+const likeCard = async (req, res) => {
+  const { id } = req.params;
+  const card = await Card.findByIdAndUpdate(
+    id,
+    { $addToSet: { likes: req.user._id } },
+    updCardSettings,
+  );
+
+  res.status(200).send(card);
+};
+
+const dislikeCard = async (req, res) => {
+  const { id } = req.params;
+  const card = await Card.findByIdAndUpdate(
+    id,
+    { $pull: { likes: req.user._id } },
+    updCardSettings,
+  );
+
+  res.status(200).send(card);
 };
 
 module.exports = {
   getCards,
   createCard,
   rmCard,
+  likeCard,
+  dislikeCard,
 };
