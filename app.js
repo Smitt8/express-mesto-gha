@@ -1,7 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 
-const { routes } = require('./routes/index');
+const { cardsRoutes } = require('./routes/cards');
+const { usersRoutes } = require('./routes/users');
 const { ERR_NOT_FOUND } = require('./utils/consts');
 
 const { PORT = 3000 } = process.env;
@@ -21,7 +22,10 @@ async function main() {
     next();
   });
 
-  app.use(routes);
+  app.use(express.json());
+
+  app.use(cardsRoutes);
+  app.use(usersRoutes);
 
   app.use((req, res) => {
     res.status(ERR_NOT_FOUND).send({ message: 'Страница не найдена' });
