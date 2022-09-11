@@ -1,3 +1,4 @@
+const cookieParser = require('cookie-parser');
 const express = require('express');
 const mongoose = require('mongoose');
 
@@ -15,17 +16,11 @@ async function main() {
     useUnifiedTopology: false,
   });
 
-  app.use((req, res, next) => {
-    req.user = {
-      _id: '630908c8adb6ec8178e45070',
-    };
-    next();
-  });
-
   app.use(express.json());
+  app.use(cookieParser());
 
-  app.use(cardsRoutes);
   app.use(usersRoutes);
+  app.use(cardsRoutes);
 
   app.use((req, res) => {
     res.status(ERR_NOT_FOUND).send({ message: 'Страница не найдена' });

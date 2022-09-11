@@ -1,6 +1,8 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const {
-  ERR_SERVER_ERR, ERR_NOT_FOUND,
+  ERR_SERVER_ERR, ERR_NOT_FOUND, ERR_AUTH,
 } = require('../utils/consts');
 const checkErr = require('../utils/utils');
 
@@ -30,17 +32,32 @@ const getUserById = (req, res) => {
     .catch((err) => checkErr(err, res));
 };
 
+const getMe = (req, res) => {
+  const { _id } = req.user;
+  User.findById(_id).then((user) => checkExist(user, res))
+    .catch((err) => checkErr(err, res));
+};
+
 const createUser = (req, res) => {
   const {
-    name, about, avatar, _id,
+    name, about, avatar, _id, email, password,
   } = req.body;
-  const user = new User({
-    name, about, avatar, _id,
-  });
+  bcrypt.hash(password, 10)
+    .then((hashedPassword) => {
+      const user = new User({
+        name,
+        about,
+        avatar,
+        _id,
+        email,
+        password: hashedPassword,
+      });
 
-  user.save().then(() => {
-    res.send(user);
-  }).catch((err) => checkErr(err, res));
+      user.save().then(() => {
+        res.send(user);
+      }).catch((err) => checkErr(err, res));
+    })
+    .catch((err) => console.log(err));
 };
 
 const updUser = (req, res) => {
@@ -57,10 +74,42 @@ const updAvatar = (req, res) => {
     .catch((err) => checkErr(err, res));
 };
 
+const login = (req, res) => {
+  const { email, password } = req.body;
+  User.findOne({ email })
+    .then((user) => {
+      if (!user) {
+        return res.status(ERR_AUTH).send({ message: 'Неверный логин или пароль' });
+      }
+      return bcrypt.compare(password, user.password)
+        .then((isValid) => {
+          if (isValid) {
+            const token = jwt.sign(
+              { _id: user._id },
+              'some-secret-key',
+              { expiresIn: '7d' },
+            );
+
+            res.cookie('jwt', token, {
+              maxAge: 3600000,
+              httpOnly: true,
+            });
+
+            return res.send(user);
+          }
+          return res.status(ERR_AUTH).send({ message: 'Неверный логин или пароль' });
+        })
+        .catch((err) => console.log(err));
+    })
+    .catch((err) => checkErr(err, res));
+};
+
 module.exports = {
   getUsers,
   getUserById,
+  getMe,
   createUser,
   updUser,
   updAvatar,
+  login,
 };
