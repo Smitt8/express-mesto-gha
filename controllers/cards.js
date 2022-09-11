@@ -1,6 +1,6 @@
 const Card = require('../models/card');
 const {
-  ERR_SERVER_ERR, ERR_NOT_FOUND,
+  ERR_SERVER_ERR, ERR_NOT_FOUND, ERR_BAD_INPUT,
 } = require('../utils/consts');
 const checkErr = require('../utils/utils');
 
@@ -8,11 +8,11 @@ const updCardSettings = {
   new: true,
 };
 
-const checkExist = (card, res, msg) => {
+const checkExist = (card, res) => {
   if (!card) {
     return res.status(ERR_NOT_FOUND).send({ message: 'Карточка не найдена' });
   }
-  return res.send((msg) || card);
+  return res.send(card);
 };
 
 const getCards = (req, res) => {
@@ -35,7 +35,19 @@ const createCard = (req, res) => {
 
 const rmCard = (req, res) => {
   const { id } = req.params;
-  Card.findByIdAndDelete(id).then((card) => checkExist(card, res, { message: 'Пост удален' }))
+  const { _id } = req.user;
+  Card.findById(id).then((card) => {
+    if (!card) {
+      return res.status(ERR_NOT_FOUND).send({ message: 'Карточка не найдена' });
+    }
+    const { owner } = card;
+    if (owner.equals(_id)) {
+      return Card.deleteOne({ _id: id })
+        .then(() => res.send({ message: 'Пост удален' }))
+        .catch((err) => checkErr(err, res));
+    }
+    return res.status(ERR_BAD_INPUT).send({ message: 'У Вас нет прав удалить эту карточку' });
+  })
     .catch((err) => checkErr(err, res));
 };
 

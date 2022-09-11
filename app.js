@@ -16,6 +16,9 @@ async function main() {
     useUnifiedTopology: false,
   });
 
+  mongoose.set('toObject', { useProjection: true });
+  mongoose.set('toJSON', { useProjection: true });
+
   app.use(express.json());
   app.use(cookieParser());
 

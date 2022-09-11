@@ -15,7 +15,7 @@ const checkExist = (user, res, msg) => {
   if (!user) {
     return res.status(ERR_NOT_FOUND).send({ message: 'Пользователь не найден' });
   }
-  return res.send((msg) || user);
+  return res.send((msg) || user.toJSON());
 };
 
 const getUsers = (req, res) => {
