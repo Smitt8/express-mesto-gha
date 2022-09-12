@@ -1,14 +1,29 @@
+const { celebrate, Joi } = require('celebrate');
 const express = require('express');
 const {
   createUser, getUsers, getUserById, updUser, updAvatar, login, getMe,
 } = require('../controllers/users');
 const auth = require('../middlewares/auth');
 const { errorHandler } = require('../middlewares/errors');
+const { urlRegex } = require('../utils/consts');
 
 const usersRoutes = express.Router();
 
-usersRoutes.post('/signup', createUser);
-usersRoutes.post('/signin', login);
+usersRoutes.post('/signup', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required().min(8),
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string().regex(urlRegex),
+  }),
+}), createUser);
+usersRoutes.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required().min(8),
+  }),
+}), login);
 
 usersRoutes.use(auth);
 
@@ -16,10 +31,17 @@ usersRoutes.get('/users', getUsers);
 usersRoutes.get('/users/me', getMe);
 usersRoutes.get('/users/:id', getUserById);
 
-usersRoutes.patch('/users/me', updUser);
-usersRoutes.patch('/users/me/avatar', updAvatar);
-
-usersRoutes.use(errorHandler);
+usersRoutes.patch('/users/me', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30),
+    about: Joi.string().required().min(2).max(30),
+  }),
+}), updUser);
+usersRoutes.patch('/users/me/avatar', celebrate({
+  body: Joi.object().keys({
+    avatar: Joi.string().required().regex(urlRegex),
+  }),
+}), updAvatar);
 
 module.exports = {
   usersRoutes,

@@ -1,10 +1,13 @@
+const { errors } = require('celebrate');
 const cookieParser = require('cookie-parser');
 const express = require('express');
 const mongoose = require('mongoose');
+const { errorHandler } = require('./middlewares/errors');
 
 const { cardsRoutes } = require('./routes/cards');
 const { usersRoutes } = require('./routes/users');
 const { ERR_NOT_FOUND } = require('./utils/consts');
+const ErrorNotFound = require('./utils/ErrorNotFound');
 
 const { PORT = 3000 } = process.env;
 
@@ -24,10 +27,12 @@ async function main() {
 
   app.use(usersRoutes);
   app.use(cardsRoutes);
-
-  app.use((req, res) => {
-    res.status(ERR_NOT_FOUND).send({ message: 'Страница не найдена' });
+  app.use((req, res, next) => {
+    next(new ErrorNotFound('Страница не найдена'));
   });
+  app.use(errors());
+  app.use(errorHandler);
+
 
   await app.listen(PORT);
 
