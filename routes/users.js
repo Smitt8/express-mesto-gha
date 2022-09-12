@@ -3,6 +3,7 @@ const {
   createUser, getUsers, getUserById, updUser, updAvatar, login, getMe,
 } = require('../controllers/users');
 const auth = require('../middlewares/auth');
+const { errorHandler } = require('../middlewares/errors');
 
 const usersRoutes = express.Router();
 
@@ -17,6 +18,8 @@ usersRoutes.get('/users/:id', getUserById);
 
 usersRoutes.patch('/users/me', updUser);
 usersRoutes.patch('/users/me/avatar', updAvatar);
+
+usersRoutes.use(errorHandler);
 
 module.exports = {
   usersRoutes,

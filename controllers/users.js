@@ -1,9 +1,9 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const {
-  ERR_SERVER_ERR, ERR_NOT_FOUND, ERR_AUTH,
-} = require('../utils/consts');
+const ErrorAuth = require('../utils/ErrorAuth');
+const ErrorNotFound = require('../utils/ErrorNotFound');
+const ErrorServerError = require('../utils/ErrorServerError');
 const checkErr = require('../utils/utils');
 
 const updUserSettings = {
@@ -11,34 +11,34 @@ const updUserSettings = {
   runValidators: true,
 };
 
-const checkExist = (user, res, msg) => {
+const checkExist = (user, res, next) => {
   if (!user) {
-    return res.status(ERR_NOT_FOUND).send({ message: 'Пользователь не найден' });
+    return next(new ErrorNotFound('Пользователь не найден'));
   }
-  return res.send((msg) || user.toJSON());
+  return res.send(user.toJSON());
 };
 
-const getUsers = (req, res) => {
+const getUsers = (req, res, next) => {
   User.find({}).then((users) => {
     res.send(users.map((el) => el));
   }).catch(() => {
-    res.status(ERR_SERVER_ERR).send({ message: 'Ошибка сервера' });
+    next(new ErrorServerError('Ошибка сервера'));
   });
 };
 
-const getUserById = (req, res) => {
+const getUserById = (req, res, next) => {
   const { id } = req.params;
-  User.findById(id).then((user) => checkExist(user, res))
-    .catch((err) => checkErr(err, res));
+  User.findById(id).then((user) => checkExist(user, res, next))
+    .catch((err) => next(err));
 };
 
-const getMe = (req, res) => {
+const getMe = (req, res, next) => {
   const { _id } = req.user;
-  User.findById(_id).then((user) => checkExist(user, res))
-    .catch((err) => checkErr(err, res));
+  User.findById(_id).then((user) => checkExist(user, res, next))
+    .catch((err) => checkErr(err, next));
 };
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const {
     name, about, avatar, _id, email, password,
   } = req.body;
@@ -55,31 +55,31 @@ const createUser = (req, res) => {
 
       user.save().then(() => {
         res.send(user);
-      }).catch((err) => checkErr(err, res));
+      }).catch((err) => checkErr(err, next));
     })
-    .catch((err) => console.log(err));
+    .catch(() => next(new ErrorServerError('Ошибка сервера')));
 };
 
-const updUser = (req, res) => {
+const updUser = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(req.user._id, { name, about }, updUserSettings)
-    .then((user) => checkExist(user, res))
-    .catch((err) => checkErr(err, res));
+    .then((user) => checkExist(user, res, next))
+    .catch((err) => checkErr(err, next));
 };
 
-const updAvatar = (req, res) => {
+const updAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(req.user._id, { avatar }, updUserSettings)
-    .then((user) => checkExist(user, res))
-    .catch((err) => checkErr(err, res));
+    .then((user) => checkExist(user, res, next))
+    .catch((err) => checkErr(err, next));
 };
 
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
   User.findOne({ email })
     .then((user) => {
       if (!user) {
-        return res.status(ERR_AUTH).send({ message: 'Неверный логин или пароль' });
+        return next(new ErrorAuth('Неверный логин или пароль'));
       }
       return bcrypt.compare(password, user.password)
         .then((isValid) => {
@@ -97,11 +97,11 @@ const login = (req, res) => {
 
             return res.send(user);
           }
-          return res.status(ERR_AUTH).send({ message: 'Неверный логин или пароль' });
+          return next(new ErrorAuth('Неверный логин или пароль'));
         })
-        .catch((err) => console.log(err));
+        .catch(() => next(new ErrorServerError('Ошибка сервера')));
     })
-    .catch((err) => checkErr(err, res));
+    .catch((err) => checkErr(err, next));
 };
 
 module.exports = {

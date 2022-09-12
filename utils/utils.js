@@ -1,10 +1,15 @@
-const { ERR_BAD_INPUT, ERR_SERVER_ERR } = require('./consts');
+const ErrorAuth = require('./ErrorAuth');
+const ErrorBadInputs = require('./ErrorBadInputs');
+const ErrorServerError = require('./ErrorServerError');
 
-const checkErr = (err, res) => {
+const checkErr = (err, next) => {
   if ((err.kind === 'ObjectId') || (err.name === 'ValidationError')) {
-    return res.status(ERR_BAD_INPUT).send({ message: 'Некорректный запрос' });
+    return next(new ErrorBadInputs('Некорректный запрос'));
   }
-  return res.status(ERR_SERVER_ERR).send({ message: 'Ошибка сервера' });
+  if (err.code === 11000) {
+    return next(new ErrorAuth('Неверный логин или пароль'));
+  }
+  return next(new ErrorServerError('Ошибка сервера'));
 };
 
 module.exports = checkErr;
