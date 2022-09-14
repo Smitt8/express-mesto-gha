@@ -1,6 +1,6 @@
 const Card = require('../models/card');
-const ErrorBadInputs = require('../utils/ErrorBadInputs');
 const ErrorNotFound = require('../utils/ErrorNotFound');
+const ErrorRights = require('../utils/ErrorRights');
 const ErrorServerError = require('../utils/ErrorServerError');
 const checkErr = require('../utils/utils');
 
@@ -46,7 +46,7 @@ const rmCard = (req, res, next) => {
         .then(() => res.send({ message: 'Пост удален' }))
         .catch((err) => checkErr(err, next));
     }
-    return next(new ErrorBadInputs('Недостаточно прав удалить эту карточку'));
+    return next(new ErrorRights('Недостаточно прав удалить эту карточку'));
   })
     .catch((err) => checkErr(err, next));
 };
