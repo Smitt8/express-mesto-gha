@@ -6,7 +6,6 @@ const { errorHandler } = require('./middlewares/errors');
 
 const { cardsRoutes } = require('./routes/cards');
 const { usersRoutes } = require('./routes/users');
-const { ERR_NOT_FOUND } = require('./utils/consts');
 const ErrorNotFound = require('./utils/ErrorNotFound');
 
 const { PORT = 3000 } = process.env;
@@ -32,7 +31,6 @@ async function main() {
   });
   app.use(errors());
   app.use(errorHandler);
-
 
   await app.listen(PORT);
 

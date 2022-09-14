@@ -4,7 +4,6 @@ const {
   createUser, getUsers, getUserById, updUser, updAvatar, login, getMe,
 } = require('../controllers/users');
 const auth = require('../middlewares/auth');
-const { errorHandler } = require('../middlewares/errors');
 const { urlRegex } = require('../utils/consts');
 
 const usersRoutes = express.Router();
@@ -29,7 +28,11 @@ usersRoutes.use(auth);
 
 usersRoutes.get('/users', getUsers);
 usersRoutes.get('/users/me', getMe);
-usersRoutes.get('/users/:id', getUserById);
+usersRoutes.get('/users/:id', celebrate({
+  params: Joi.object().keys({
+    id: Joi.string().hex().length(24),
+  }),
+}), getUserById);
 
 usersRoutes.patch('/users/me', celebrate({
   body: Joi.object().keys({

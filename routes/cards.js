@@ -4,7 +4,6 @@ const {
   getCards, createCard, rmCard, likeCard, dislikeCard,
 } = require('../controllers/cards');
 const auth = require('../middlewares/auth');
-const { errorHandler } = require('../middlewares/errors');
 const { urlRegex } = require('../utils/consts');
 
 const cardsRoutes = express.Router();

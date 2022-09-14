@@ -11,6 +11,9 @@ const errorHandler = (err, req, res, next) => {
     case 'AuthError':
       res.status(err.statusCode).send({ message: err.message });
       break;
+    case 'UniqueError':
+      res.status(err.statusCode).send({ message: err.message });
+      break;
     default:
       res.status(ERR_SERVER_ERR).send({ message: 'Неизвестная ошибка' });
       break;
